@@ -9,10 +9,10 @@ metadata:
     alb.ingress.kubernetes.io/target-type: ip
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
     alb.ingress.kubernetes.io/ssl-redirect: "443"
-    alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:ap-south-1:496203436083:certificate/35725a9a-c130-4fb7-8d24-4340809f699f"
+    alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:ap-south-1:318630425608:certificate/8c1e09ae-9534-446e-afa3-342ba0e98e92"
 spec:
   rules:
-  - host: medibot.kirandevops.xyz
+  - host: medibot.saaddevops.xyz
     http:
       paths:
       - path: /
