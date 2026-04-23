@@ -1,0 +1,92 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: medibot-config
+  namespace: webapps
+data:
+  BEDROCK_REGION: "ap-south-1"
+  BEDROCK_MODEL_ID: "apac.amazon.nova-lite-v1:0"
+  MYSQL_HOST: "mysql-service"
+  MYSQL_DB: "medibotdb"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: medibot
+  namespace: webapps
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: medibot
+  template:
+    metadata:
+      labels:
+        app: medibot
+    spec:
+      containers:
+      - name: medibot
+        image: 496203436083.dkr.ecr.ap-south-1.amazonaws.com/medibot:v1
+        ports:
+        - containerPort: 8080
+        env:
+        - name: MYSQL_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: medibot-config
+              key: MYSQL_HOST
+        - name: MYSQL_DB
+          valueFrom:
+            configMapKeyRef:
+              name: medibot-config
+              key: MYSQL_DB
+        - name: MYSQL_USER
+          value: "root"
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: MYSQL_ROOT_PASSWORD
+        - name: BEDROCK_REGION
+          valueFrom:
+            configMapKeyRef:
+              name: medibot-config
+              key: BEDROCK_REGION
+        - name: BEDROCK_MODEL_ID
+          valueFrom:
+            configMapKeyRef:
+              name: medibot-config
+              key: BEDROCK_MODEL_ID
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 8080
+          initialDelaySeconds: 90
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 8080
+          initialDelaySeconds: 90
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: medibot-service
+  namespace: webapps
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 8080
+  selector:
+    app: medibot
